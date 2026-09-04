@@ -339,10 +339,17 @@ describe("BooleanHttpClient", () => {
       vi.useFakeTimers();
 
       const fetchMock = vi.fn(
-        () =>
+        (_url: string, init?: RequestInit) =>
           new Promise<Response>((_, reject) => {
-            // Simula un fetch que dura para siempre
-            setTimeout(() => reject(Object.assign(new Error(), { name: "AbortError" })), 999_999);
+            // Simula un fetch que dura para siempre, salvo que lo aborten
+            const signal = init?.signal;
+            const abort = () =>
+              reject(Object.assign(new Error(), { name: "AbortError" }));
+            if (signal?.aborted) {
+              abort();
+              return;
+            }
+            signal?.addEventListener("abort", abort);
           })
       );
       vi.stubGlobal("fetch", fetchMock);
@@ -353,9 +360,10 @@ describe("BooleanHttpClient", () => {
       });
 
       const promise = client.get("/slow-endpoint");
-      vi.advanceTimersByTime(200);
+      const assertion = expect(promise).rejects.toThrow(RequestAbortedError);
+      await vi.advanceTimersByTimeAsync(200);
 
-      await expect(promise).rejects.toThrow(RequestAbortedError);
+      await assertion;
 
       vi.useRealTimers();
     });
