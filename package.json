@@ -1,14 +1,14 @@
 {
   "name": "@boolean-systems-packages/http",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cliente HTTP base para la plataforma Boolean. Maneja headers, auth e interceptors sin lógica de negocio.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types":   "./dist/index.d.ts",
-      "import":  "./dist/index.mjs",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     }
   },
