@@ -1,0 +1,75 @@
+name: Publicar versión
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Tipo de versión a publicar
+        type: choice
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configurar identidad de git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Instalar dependencias
+        run: npm install
+        env:
+          BOOLEAN_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Test
+        run: npm test --if-present
+
+      - name: Bump de versión
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            npm version "${{ inputs.bump }}" -m "chore: release v%s"
+          else
+            npm version patch -m "chore: release v%s"
+          fi
+
+      - name: Publicar en GitHub Packages
+        run: npm publish
+        env:
+          BOOLEAN_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pushear bump y tag
+        run: git push --follow-tags origin HEAD:main
+
+      - name: Resumen
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "### Publicado $VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "Evento: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
