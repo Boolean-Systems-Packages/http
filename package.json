@@ -1,5 +1,5 @@
 {
-  "name": "@boolean/http",
+  "name": "@boolean-systems-packages/http",
   "version": "0.1.0",
   "description": "Cliente HTTP base para la plataforma Boolean. Maneja headers, auth e interceptors sin lógica de negocio.",
   "main": "./dist/index.js",
@@ -32,7 +32,10 @@
   ],
   "author": "Boolean Systems",
   "license": "UNLICENSED",
-  "private": true,
+  "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
